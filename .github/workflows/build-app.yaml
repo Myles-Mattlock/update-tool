@@ -94,7 +94,7 @@ jobs:
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [system_cleanup_build, server_cleanup_build]
+    needs: [system_updater_build]
     if: github.ref_type == 'tag'
     permissions:
       contents: write
