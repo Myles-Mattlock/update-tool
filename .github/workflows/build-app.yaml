@@ -64,7 +64,7 @@ jobs:
 
     - name: Convert PowerShell script to executable (update)
       run: |
-        pwsh -Command "ps2exe -InputFile installer.ps1 -OutputFile 'SystemUpdate/SystemUpdater.exe' -IconFile Refresh.ico -version '1.3'"
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/System Update.exe' -IconFile Refresh.ico -version '1.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (update)
@@ -77,19 +77,19 @@ jobs:
             exit 1
           }
         }
-        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\SystemUpdater.exe";#1
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
       shell: pwsh
 
     - name: Create update ZIP
       run: |
-        Compress-Archive -Path "SystemUpdate\SystemUpdater.exe" -DestinationPath "SystemUpdate/SystemUpdater.zip"
+        Compress-Archive -Path "SystemUpdate\System Update.exe" -DestinationPath "SystemUpdate/SystemUpdate.zip"
       shell: pwsh
 
     - name: Upload Artifact (update)
       uses: actions/upload-artifact@v4
       with:
-        name: SystemUpdaterZIP
-        path: SystemUpdate/SystemUpdater.zip
+        name: SystemUpdateZIP
+        path: SystemUpdate/SystemUpdate.zip
 
   create_release:
     name: Create Release
@@ -103,13 +103,13 @@ jobs:
     - name: Download System update ZIP Artifact
       uses: actions/download-artifact@v4
       with:
-        name: SystemUpdaterZIP
+        name: SystemUpdateZIP
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref_name }}
         files: |
-          SystemUpdater.zip
+          SystemUpdate.zip
         draft: false
         prerelease: ${{ contains(github.ref_name, '-') }}
