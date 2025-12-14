@@ -12,18 +12,21 @@ on:
 jobs:
   system_update_build:
     name: Build System update
-    runs-on: windows-2022 # Using 'windows-2022' as 'windows-2025' is a placeholder
+    # Using 'windows-2022' for stability, as 'windows-2025' is non-standard/future.
+    runs-on: windows-2022 
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    # --- Cache Steps (Unchanged, assumed correct) ---
 
     - name: Cache PowerShell Modules (update)
       uses: actions/cache@v4
       id: cache-psmodules-system
       with:
         path: ~\Documents\WindowsPowerShell\Modules
-        key: ${{ runner.os }}-psmodules-system-${{ hashFiles('**/requirements.psd1') }} # Adjust pattern as needed
+        key: ${{ runner.os }}-psmodules-system-${{ hashFiles('**/requirements.psd1') }} 
 
     - name: Install ps2exe module (update)
       if: steps.cache-psmodules-system.outputs.cache-hit != 'true'
@@ -36,7 +39,7 @@ jobs:
       id: cache-buildtools-system
       with:
         path: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools
-        key: ${{ runner.os }}-buildtools-system-2022 # Consider a more dynamic key if needed
+        key: ${{ runner.os }}-buildtools-system-2022 
 
     - name: Install Visual Studio Build Tools (update)
       if: steps.cache-buildtools-system.outputs.cache-hit != 'true'
@@ -62,13 +65,15 @@ jobs:
         $env:PATH += ";C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64"
       shell: pwsh
 
-    - name: Convert PowerShell script to executable (update)
+    # --- Critical Fixes Implemented Here ---
+
+    - name: Convert PowerShell script to executable (temporary name)
       run: |
-        # 🟢 FIX 1: Create the executable with a temporary name (no spaces)
+        # 🟢 FIX 1: Create the executable using a temporary name without spaces
         pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/TempUpdate.exe' -IconFile Refresh.ico -version '1.0'"
       shell: pwsh
 
-    - name: Run mt.exe to embed manifest (update)
+    - name: Run mt.exe to embed manifest (using temporary name)
       run: |
         $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
         if (-not (Test-Path $mtPath)) {
@@ -78,19 +83,19 @@ jobs:
             exit 1
           }
         }
-        # 🟢 FIX 2: Run mt.exe against the temporary name (no spaces)
+        # 🟢 FIX 2: Run mt.exe against the temporary name (TempUpdate.exe)
         & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\TempUpdate.exe";#1
       shell: pwsh
 
     - name: Rename executable for final packaging
       run: |
-        # 🟢 FIX 3: Rename the file back to the desired name (with spaces)
+        # 🟢 FIX 3: Rename the file back to the desired name with a space
         Rename-Item -Path "SystemUpdate\TempUpdate.exe" -NewName "System Update.exe" -Force
       shell: pwsh
 
     - name: Create update ZIP
       run: |
-        # Use the final, desired name with the space (which PowerShell handles correctly)
+        # Now zipping the final, correct name with the space
         Compress-Archive -Path "SystemUpdate\System Update.exe" -DestinationPath "SystemUpdate/SystemUpdate.zip"
       shell: pwsh
 
