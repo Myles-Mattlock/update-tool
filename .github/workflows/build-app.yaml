@@ -71,7 +71,7 @@ jobs:
       run: |
         # ... (mt.exe search logic remains robust) ...
         # Spaces correctly handled by double quotes "..."
-        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
+        $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
       shell: pwsh
 
     - name: Create update ZIP
