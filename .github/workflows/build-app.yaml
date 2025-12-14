@@ -10,38 +10,35 @@ on:
   workflow_dispatch:
 
 jobs:
-  system_update_build:
-    name: Build System update
-    # Using 'windows-2022' for stability, as 'windows-2025' is non-standard/future.
-    runs-on: windows-2022 
+  system_Update_build:
+    name: Build System Update
+    runs-on: windows-2025
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # --- Cache Steps (Unchanged, assumed correct) ---
-
-    - name: Cache PowerShell Modules (update)
+    - name: Cache PowerShell Modules (System Update)
       uses: actions/cache@v4
       id: cache-psmodules-system
       with:
         path: ~\Documents\WindowsPowerShell\Modules
-        key: ${{ runner.os }}-psmodules-system-${{ hashFiles('**/requirements.psd1') }} 
+        key: ${{ runner.os }}-psmodules-system-${{ hashFiles('**/requirements.psd1') }} # Adjust pattern as needed
 
-    - name: Install ps2exe module (update)
+    - name: Install ps2exe module (System Update)
       if: steps.cache-psmodules-system.outputs.cache-hit != 'true'
       run: |
         pwsh -Command "Install-Module -Name ps2exe -Force"
       shell: pwsh
 
-    - name: Cache Build Tools (update)
+    - name: Cache Build Tools (System Update)
       uses: actions/cache@v4
       id: cache-buildtools-system
       with:
         path: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools
-        key: ${{ runner.os }}-buildtools-system-2022 
+        key: ${{ runner.os }}-buildtools-system-2022 # Consider a more dynamic key if needed
 
-    - name: Install Visual Studio Build Tools (update)
+    - name: Install Visual Studio Build Tools (System Update)
       if: steps.cache-buildtools-system.outputs.cache-hit != 'true'
       run: |
         # Remove the file if it exists
@@ -60,20 +57,17 @@ jobs:
         }
       shell: pwsh
 
-    - name: Set Environment Path (update)
+    - name: Set Environment Path (System Update)
       run: |
         $env:PATH += ";C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64"
       shell: pwsh
 
-    # --- Critical Fixes Implemented Here ---
-
-    - name: Convert PowerShell script to executable (temporary name)
+    - name: Convert PowerShell script to executable (System Update)
       run: |
-        # 🟢 FIX 1: Create the executable using a temporary name without spaces
-        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/TempUpdate.exe' -IconFile Refresh.ico -version '1.0'"
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/System Update.exe' -IconFile Refresh.ico -version '1.0'"
       shell: pwsh
 
-    - name: Run mt.exe to embed manifest (using temporary name)
+    - name: Run mt.exe to embed manifest (System Update)
       run: |
         $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
         if (-not (Test-Path $mtPath)) {
@@ -83,47 +77,16 @@ jobs:
             exit 1
           }
         }
-        # 🟢 FIX 2: Run mt.exe against the temporary name (TempUpdate.exe)
-        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\TempUpdate.exe";#1
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
       shell: pwsh
 
-    - name: Rename executable for final packaging
+    - name: Create System Update ZIP
       run: |
-        # 🟢 FIX 3: Rename the file back to the desired name with a space
-        Rename-Item -Path "SystemUpdate\TempUpdate.exe" -NewName "System Update.exe" -Force
+        Compress-Archive -Path "SystemUpdate\System Update.exe", "SystemUpdate\*.reg" -DestinationPath "SystemUpdate/SystemUpdate.zip"
       shell: pwsh
 
-    - name: Create update ZIP
-      run: |
-        # Now zipping the final, correct name with the space
-        Compress-Archive -Path "SystemUpdate\System Update.exe" -DestinationPath "SystemUpdate/SystemUpdate.zip"
-      shell: pwsh
-
-    - name: Upload Artifact (update)
+    - name: Upload Artifact (System Update ZIP)
       uses: actions/upload-artifact@v4
       with:
         name: SystemUpdateZIP
         path: SystemUpdate/SystemUpdate.zip
-
-  create_release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    needs: [system_update_build]
-    if: github.ref_type == 'tag'
-    permissions:
-      contents: write
-
-    steps:
-    - name: Download System update ZIP Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: SystemUpdateZIP
-
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ github.ref_name }}
-        files: |
-          SystemUpdate.zip
-        draft: false
-        prerelease: ${{ contains(github.ref_name, '-') }}
