@@ -82,14 +82,14 @@ jobs:
 
     - name: Create update ZIP
       run: |
-        Compress-Archive -Path "SystemUpdate\update.exe" -DestinationPath "SystemUpdate/update.zip"
+        Compress-Archive -Path "SystemUpdate\SystemUpdater.exe" -DestinationPath "SystemUpdate/SystemUpdater.zip"
       shell: pwsh
 
     - name: Upload Artifact (update)
       uses: actions/upload-artifact@v4
       with:
-        name: SystemupdateZIP
-        path: SystemUpdate/Systemupdate.zip
+        name: SystemUpdaterZIP
+        path: SystemUpdate/SystemUpdater.zip
 
   create_release:
     name: Create Release
@@ -103,13 +103,13 @@ jobs:
     - name: Download System update ZIP Artifact
       uses: actions/download-artifact@v4
       with:
-        name: SystemupdateZIP
+        name: SystemUpdaterZIP
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref_name }}
         files: |
-          Systemupdate.zip
+          SystemUpdater.zip
         draft: false
         prerelease: ${{ contains(github.ref_name, '-') }}
