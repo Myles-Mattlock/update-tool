@@ -88,8 +88,8 @@ jobs:
     - name: Upload Artifact (Updater)
       uses: actions/upload-artifact@v4
       with:
-        name: SystemCleanUpZIP
-        path: SystemCleanUp/SystemCleanUp.zip
+        name: SystemUpdaterZIP
+        path: SystemUpdate/SystemUpdater.zip
 
   create_release:
     name: Create Release
