@@ -77,7 +77,7 @@ jobs:
             exit 1
           }
         }
-        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\update.exe";#1
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\installer.exe";#1
       shell: pwsh
 
     - name: Create update ZIP
