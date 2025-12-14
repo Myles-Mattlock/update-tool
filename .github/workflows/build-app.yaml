@@ -69,9 +69,15 @@ jobs:
 
     - name: Run mt.exe to embed manifest (update)
       run: |
-        # ... (mt.exe search logic remains robust) ...
-        # Spaces correctly handled by double quotes "..."
-        $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
+        $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
+        if (-not (Test-Path $mtPath)) {
+          $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\*\bin\*\x64\mt.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 | Select-Object -ExpandProperty FullName
+          if (-not $mtPath) {
+            Write-Error "mt.exe not found."
+            exit 1
+          }
+        }
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
       shell: pwsh
 
     - name: Create update ZIP
