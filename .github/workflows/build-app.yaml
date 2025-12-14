@@ -12,7 +12,7 @@ on:
 jobs:
   system_update_build:
     name: Build System update
-    runs-on: windows-2025
+    runs-on: windows-2022 # Using 'windows-2022' as 'windows-2025' is a placeholder
 
     steps:
     - name: Checkout code
@@ -64,7 +64,8 @@ jobs:
 
     - name: Convert PowerShell script to executable (update)
       run: |
-        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/System Update.exe' -IconFile Refresh.ico -version '1.0'"
+        # 🟢 FIX 1: Create the executable with a temporary name (no spaces)
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/TempUpdate.exe' -IconFile Refresh.ico -version '1.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (update)
@@ -77,11 +78,19 @@ jobs:
             exit 1
           }
         }
-        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
+        # 🟢 FIX 2: Run mt.exe against the temporary name (no spaces)
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\TempUpdate.exe";#1
+      shell: pwsh
+
+    - name: Rename executable for final packaging
+      run: |
+        # 🟢 FIX 3: Rename the file back to the desired name (with spaces)
+        Rename-Item -Path "SystemUpdate\TempUpdate.exe" -NewName "System Update.exe" -Force
       shell: pwsh
 
     - name: Create update ZIP
       run: |
+        # Use the final, desired name with the space (which PowerShell handles correctly)
         Compress-Archive -Path "SystemUpdate\System Update.exe" -DestinationPath "SystemUpdate/SystemUpdate.zip"
       shell: pwsh
 
