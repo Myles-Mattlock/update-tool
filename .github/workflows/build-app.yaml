@@ -96,6 +96,6 @@ jobs:
       with:
         tag_name: ${{ github.ref_name }}
         files: |
-          ServerUpdate.zip
+          SystemUpdate.zip
         draft: false
         prerelease: ${{ contains(github.ref_name, '-') }}
