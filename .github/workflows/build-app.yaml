@@ -43,14 +43,9 @@ jobs:
         $env:PATH += ";C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64"
       shell: pwsh
 
-    - name: Convert PowerShell script to executable (System Upgrade)
+    - name: Convert PowerShell script to executable (System Update)
       run: |
-        ps2exe `
-          -InputFile update.ps1 `
-          -OutputFile "SystemUpdate\System Upgrade.exe" `
-          -IconFile Refresh.ico `
-          -version "1.0" `
-          -Verbose
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/System Update.exe' -version '1.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (System Update)
