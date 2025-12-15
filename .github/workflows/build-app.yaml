@@ -63,7 +63,7 @@ jobs:
     
     - name: Convert PowerShell script to executable (System Update)
       run: |
-        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/SystemUpdate/System Update.exe' -version '1.0' -Verbose"
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/SystemUpdate/System Update.exe' -version '1.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (System Update)
@@ -81,7 +81,7 @@ jobs:
 
     - name: Create System Update ZIP
       run: |
-        Compress-Archive -Path "SystemUpdate\installer.exe", "SystemUpdate\System Update.exe" -DestinationPath "SystemUpdate/SystemUpdate.zip"
+        Compress-Archive -Path "SystemUpdate\installer.exe", "SystemUpdate\SystemUpdate" -DestinationPath "SystemUpdate/SystemUpdate.zip"
       shell: pwsh
 
     - name: Upload Artifact (Server CleanUp ZIP)
