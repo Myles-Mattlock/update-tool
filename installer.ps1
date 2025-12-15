@@ -37,5 +37,28 @@ try {
     Write-Output $_.Exception.Message
 }
 Copy-Item -Path "SystemUpdate" -Destination "C:\Program Files\SystemUpdate" -Recurse -Force
+#path to .exe file
+$targetPath = "C:\Program Files\SystemUpdate"
+
+#name for shortcut
+$shortcutName = "System Update"
+
+$desktopPath = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Desktop)
+$shortcutPath = Join-Path $desktopPath "$shortcutName.lnk"
+$WshShell = New-Object -ComObject WScript.Shell
+$shortcut = $WshShell.CreateShortcut($shortcutPath)
+$shortcut.TargetPath = $targetPath
+
+#Set a description for the shortcut (what appears as a tooltip)
+$shortcut.Description = "Update Windows using Myles' Tool"
+
+$shortcut.Save()
+
+Write-Host "Shortcut for '$shortcutName' created successfully on the desktop."
+
+
+
+
+
 Write-Output "Successfully installer Myles updater, closing..."
 Start-Sleep -Seconds 5

@@ -63,7 +63,7 @@ jobs:
     
     - name: Convert PowerShell script to executable (System Update)
       run: |
-        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/System Update.exe' -version '1.0'"
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/SystemUpdate/System Update.exe' -version '1.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (System Update)
@@ -76,7 +76,7 @@ jobs:
             exit 1
           }
         }
-        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\SystemUpdate\System Update.exe";#1
       shell: pwsh
 
     - name: Create System Update ZIP
