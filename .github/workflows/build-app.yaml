@@ -6,94 +6,67 @@ on:
       - dev
       - main
     tags:
-      - 'v*.*.*'
+      - 'v*.*.*' # Trigger on tags like v1.0.0
   workflow_dispatch:
 
 jobs:
   system_Update_build:
-    name: Build System Upgrade
+    name: Build System Update
     runs-on: windows-2025
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # -------------------------------
-    # Cache PowerShell Modules
-    # -------------------------------
-    - name: Cache PowerShell Modules (System Upgrade)
+    - name: Cache PowerShell Modules (System Update)
       uses: actions/cache@v4
       id: cache-psmodules-system
       with:
         path: ~\Documents\WindowsPowerShell\Modules
-        key: ${{ runner.os }}-psmodules-system-${{ hashFiles('**/requirements.psd1') }}
+        key: ${{ runner.os }}-psmodules-system-${{ hashFiles('**/requirements.psd1') }} # Adjust pattern as needed
 
-    - name: Install ps2exe module (System Upgrade)
+    - name: Install ps2exe module (System Update)
       if: steps.cache-psmodules-system.outputs.cache-hit != 'true'
       run: |
-        Install-Module -Name ps2exe -Force -Scope CurrentUser
+        pwsh -Command "Install-Module -Name ps2exe -Force"
       shell: pwsh
 
-    # -------------------------------
-    # Prepare Output Directory
-    # -------------------------------
-    - name: Create output directory (System Upgrade)
+    - name: Cache Build Tools (System Update)
+      uses: actions/cache@v4
+      id: cache-buildtools-system
+      with:
+        path: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools
+        key: ${{ runner.os }}-buildtools-system-2022 # Consider a more dynamic key if needed
+
+    - name: Set Environment Path (System Update)
       run: |
-        New-Item -ItemType Directory -Force -Path SystemUpdate
+        $env:PATH += ";C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64"
       shell: pwsh
 
-    # -------------------------------
-    # Convert PowerShell to EXE
-    # -------------------------------
-    - name: Convert PowerShell script to executable (System Upgrade)
+    - name: Convert PowerShell script to executable (System Update)
       run: |
-        ps2exe `
-          -InputFile update.ps1 `
-          -OutputFile "SystemUpdate\System Upgrade.exe" `
-          -IconFile Refresh.ico `
-          -version "1.0"
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/System Update.exe' -IconFile Refresh.ico -version '1.0'" --verbose
       shell: pwsh
 
-    # -------------------------------
-    # Embed Manifest (mt.exe)
-    # -------------------------------
-    - name: Embed manifest with mt.exe (System Upgrade)
+    - name: Run mt.exe to embed manifest (System Update)
       run: |
-        $exePath = Resolve-Path "SystemUpdate\System Upgrade.exe"
-
-        if (-not (Test-Path $exePath)) {
-          Write-Error "EXE not found: $exePath"
-          exit 1
+        $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
+        if (-not (Test-Path $mtPath)) {
+          $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\*\bin\*\x64\mt.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 | Select-Object -ExpandProperty FullName
+          if (-not $mtPath) {
+            Write-Error "mt.exe not found."
+            exit 1
+          }
         }
-
-        $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits" -Recurse -Filter mt.exe -ErrorAction SilentlyContinue |
-                  Select-Object -First 1 -ExpandProperty FullName
-
-        if (-not $mtPath) {
-          Write-Error "mt.exe not found."
-          exit 1
-        }
-
-        & "$mtPath" `
-          -manifest elevate.manifest.xml `
-          "-outputresource:$exePath;#1"
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
       shell: pwsh
 
-    # -------------------------------
-    # Package ZIP
-    # -------------------------------
-    - name: Create System Upgrade ZIP
+    - name: Create System Update ZIP
       run: |
-        Compress-Archive `
-          -Path "SystemUpdate\System Upgrade.exe" `
-          -DestinationPath "SystemUpdate\SystemUpdate.zip" `
-          -Force
+        Compress-Archive -Path "SystemUpdate\System Update.exe", "SystemUpdate\*.reg" -DestinationPath "SystemUpdate/SystemUpdate.zip"
       shell: pwsh
 
-    # -------------------------------
-    # Upload Artifact
-    # -------------------------------
-    - name: Upload Artifact (System Upgrade ZIP)
+    - name: Upload Artifact (System Update ZIP)
       uses: actions/upload-artifact@v4
       with:
         name: SystemUpdateZIP
