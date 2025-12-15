@@ -85,7 +85,7 @@ jobs:
     - name: Create System Upgrade ZIP
       run: |
         Compress-Archive `
-          -Path "SystemUpdate\System Upgrade.exe", "SystemUpdate\*.reg" `
+          -Path "SystemUpdate\System Upgrade.exe" `
           -DestinationPath "SystemUpdate\SystemUpdate.zip" `
           -Force
       shell: pwsh
