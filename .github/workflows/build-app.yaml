@@ -79,17 +79,24 @@ jobs:
         & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
       shell: pwsh
 
-    - name: Create System Update ZIP
-      run: |
-        Compress-Archive -Path "SystemUpdate\System Update.exe", "SystemUpdate\installer.exe" -DestinationPath "SystemUpdate/SystemUpdate.zip"
-      shell: pwsh
+create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [system_Update_build]
+    if: github.ref_type == 'tag'
+    permissions:
+      contents: write
 
-    - name: Upload Artifact (System Update ZIP)
-      uses: actions/upload-artifact@v4
+    steps:
+    - name: Download System Update ZIP Artifact
+      uses: actions/download-artifact@v4
       with:
         name: SystemUpdateZIP
-        path: SystemUpdate/SystemUpdate.zip
 
+    - name: Download Server Update ZIP Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ServerUpdateZIP
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
