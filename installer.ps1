@@ -36,6 +36,6 @@ try {
     Write-Output "An error occurred while running the installer"
     Write-Output $_.Exception.Message
 }
-
+Copy-Item -Path "SystemUpdate" -Destination "C:\Program Files\SystemUpdate" -Recurse -Force
 Write-Output "Successfully installer Myles updater, closing..."
 Start-Sleep -Seconds 5
