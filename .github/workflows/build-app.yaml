@@ -79,30 +79,30 @@ jobs:
         & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
       shell: pwsh
 
-create_release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    needs: [system_Update_build]
-    if: github.ref_type == 'tag'
-    permissions:
-      contents: write
+  create_release:
+      name: Create Release
+      runs-on: ubuntu-latest
+      needs: [system_Update_build]
+      if: github.ref_type == 'tag'
+      permissions:
+        contents: write
 
-    steps:
-    - name: Download System Update ZIP Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: SystemUpdateZIP
+      steps:
+      - name: Download System Update ZIP Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SystemUpdateZIP
 
-    - name: Download Server Update ZIP Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ServerUpdateZIP
+      - name: Download Server Update ZIP Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ServerUpdateZIP
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ github.ref_name }}
-        files: |
-          SystemUpdate.zip
-        draft: false
-        prerelease: ${{ contains(github.ref_name, '-') }}
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            SystemUpdate.zip
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
