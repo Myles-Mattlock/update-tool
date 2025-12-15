@@ -69,15 +69,24 @@ jobs:
 
     - name: Run mt.exe to embed manifest (System Upgrade)
       run: |
-        $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
-        if (-not (Test-Path $mtPath)) {
-          $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\*\bin\*\x64\mt.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 | Select-Object -ExpandProperty FullName
-          if (-not $mtPath) {
-            Write-Error "mt.exe not found."
-            exit 1
-          }
+        $exePath = Resolve-Path "SystemUpdate\System Upgrade.exe"
+
+        if (-not (Test-Path $exePath)) {
+          Write-Error "EXE not found: $exePath"
+          exit 1
         }
-        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Upgrade.exe";#1
+
+        $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits" -Recurse -Filter mt.exe |
+                  Select-Object -First 1 -ExpandProperty FullName
+
+        if (-not $mtPath) {
+          Write-Error "mt.exe not found."
+          exit 1
+        }
+
+        & "$mtPath" `
+          -manifest elevate.manifest.xml `
+          "-outputresource:$exePath;#1"
       shell: pwsh
 
     - name: Create System Upgrade ZIP
