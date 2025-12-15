@@ -93,10 +93,10 @@ jobs:
         with:
           name: SystemUpdateZIP
 
-      - name: Download Server Update ZIP Artifact
+      - name: Download System Update ZIP Artifact
         uses: actions/download-artifact@v4
         with:
-          name: ServerUpdateZIP
+          name: SystemUpdateZIP
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
