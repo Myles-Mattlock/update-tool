@@ -45,7 +45,7 @@ jobs:
 
     - name: Convert PowerShell script to executable (System Update)
       run: |
-        pwsh -Command "ps2exe -InputFile installer.ps1 -OutputFile 'SystemUpdate/installer.exe' -version '1.0'"
+        pwsh -Command "ps2exe -InputFile installer.ps1 -OutputFile 'SystemUpdate/installer.exe' -version -Verbose '1.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (Install)
@@ -60,18 +60,6 @@ jobs:
         }
         & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\installer.exe";#1
       shell: pwsh
-
-    - name: Create installer ZIP
-      run: |
-        Compress-Archive -Path "SystemUpdate\installer.exe" -DestinationPath "SystemUpdate/Installer.zip"
-      shell: pwsh
-
-    - name: Upload Artifact (installer ZIP)
-      uses: actions/upload-artifact@v4
-      with:
-        name: InstallerZIP
-        path: SystemUpdate/Installer.zip
-    
     
     - name: Convert PowerShell script to executable (System Update)
       run: |
@@ -93,7 +81,7 @@ jobs:
 
     - name: Create System Update ZIP
       run: |
-        Compress-Archive -Path "SystemUpdate\System Update.exe" -DestinationPath "SystemUpdate/SystemUpdate.zip"
+        Compress-Archive -Path "SystemUpdate\System Update.exe", "SystemUpdate\installer.exe" -DestinationPath "SystemUpdate/SystemUpdate.zip"
       shell: pwsh
 
     - name: Upload Artifact (System Update ZIP)
