@@ -45,7 +45,7 @@ jobs:
 
     - name: Convert PowerShell script to executable (System Update)
       run: |
-        pwsh -Command "ps2exe -InputFile installer.ps1 -OutputFile 'SystemUpdate/installer.exe' -version -Verbose '1.0'"
+        pwsh -Command "ps2exe -InputFile installer.ps1 -OutputFile 'SystemUpdate/installer.exe' -version '1.0' -Verbose"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (Install)
