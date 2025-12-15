@@ -48,6 +48,36 @@ jobs:
         pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/System Update.exe' -version '1.0'"
       shell: pwsh
 
+    - name: Run mt.exe to embed manifest (Install)
+      run: |
+        $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
+        if (-not (Test-Path $mtPath)) {
+          $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\*\bin\*\x64\mt.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 | Select-Object -ExpandProperty FullName
+          if (-not $mtPath) {
+            Write-Error "mt.exe not found."
+            exit 1
+          }
+        }
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\installer.exe";#1
+      shell: pwsh
+
+    - name: Create installer ZIP
+      run: |
+        Compress-Archive -Path "SystemUpdate\installer.exe" -DestinationPath "SystemUpdate/Installer.zip"
+      shell: pwsh
+
+    - name: Upload Artifact (installer ZIP)
+      uses: actions/upload-artifact@v4
+      with:
+        name: InstallerZIP
+        path: SystemUpdate/Installer.zip
+    
+    
+    - name: Convert PowerShell script to executable (System Update)
+      run: |
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/System Update.exe' -version '1.0'"
+      shell: pwsh
+
     - name: Run mt.exe to embed manifest (System Update)
       run: |
         $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
@@ -63,7 +93,7 @@ jobs:
 
     - name: Create System Update ZIP
       run: |
-        Compress-Archive -Path "SystemUpdate\System Update.exe", "SystemUpdate\*.reg" -DestinationPath "SystemUpdate/SystemUpdate.zip"
+        Compress-Archive -Path "SystemUpdate\System Update.exe" -DestinationPath "SystemUpdate/SystemUpdate.zip"
       shell: pwsh
 
     - name: Upload Artifact (System Update ZIP)
@@ -71,3 +101,14 @@ jobs:
       with:
         name: SystemUpdateZIP
         path: SystemUpdate/SystemUpdate.zip
+
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        files: |
+          Installer.zip
+          ServerUpdate.zip
+        draft: false
+        prerelease: ${{ contains(github.ref_name, '-') }}
