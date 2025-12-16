@@ -15,7 +15,7 @@ try {
 
     Get-WindowsUpdate
     Install-WindowsUpdate -ForceDownload -ForceInstall -Confirm:$false -IgnoreReboot
-    winget update --all
+    winget update --all --accept-source-agreements
 
 } catch {
     Write-Output "An error occurred while running the Updater app"
