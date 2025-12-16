@@ -1,3 +1,5 @@
+Get-ChildItem -Path $installPath -Recurse | Unblock-File
+
 # Check if the script is running as Administrator
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Output "This program requires administrative privileges. Please run it as Administrator."
@@ -36,11 +38,14 @@ try {
     Write-Output "An error occurred while running the installer"
     Write-Output $_.Exception.Message
 }
-Copy-Item -Path "SystemUpdate" -Destination "C:\Program Files\SystemUpdate" -Recurse -Force
-#path to .exe file
-$targetPath = "C:\Program Files\SystemUpdate"
+$installPath = "C:\Program Files\SystemUpdate"
 
-#name for shortcut
+New-Item -ItemType Directory -Force -Path $installPath | Out-Null
+
+Copy-Item -Path "SystemUpdate\*" -Destination "C:\Program Files\SystemUpdate" -Recurse -Force
+
+$targetPath = "C:\Program Files\SystemUpdate\System Update.exe"
+
 $shortcutName = "System Update"
 
 $desktopPath = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Desktop)
@@ -48,16 +53,10 @@ $shortcutPath = Join-Path $desktopPath "$shortcutName.lnk"
 $WshShell = New-Object -ComObject WScript.Shell
 $shortcut = $WshShell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $targetPath
-
-#Set a description for the shortcut (what appears as a tooltip)
 $shortcut.Description = "Update Windows using Myles' Tool"
-
 $shortcut.Save()
 
 Write-Host "Shortcut for '$shortcutName' created successfully on the desktop."
-
-
-
 
 
 Write-Output "Successfully installer Myles updater, closing..."
