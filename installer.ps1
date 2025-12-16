@@ -36,6 +36,10 @@ try {
     Write-Output "An error occurred while running the installer"
     Write-Output $_.Exception.Message
 }
+$installPath = "C:\Program Files\SystemUpdate"
+
+New-Item -ItemType Directory -Force -Path $installPath | Out-Null
+
 Copy-Item -Path "SystemUpdate\*" -Destination "C:\Program Files\SystemUpdate" -Recurse -Force
 
 $targetPath = "C:\Program Files\SystemUpdate\System Update.exe"
