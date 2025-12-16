@@ -1,3 +1,5 @@
+Get-ChildItem -Path $installPath -Recurse | Unblock-File
+
 # Check if the script is running as Administrator
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Output "This program requires administrative privileges. Please run it as Administrator."
