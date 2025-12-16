@@ -6,7 +6,7 @@ on:
       - dev
       - main
     tags:
-      - 'v*.*.*' # Trigger on tags like v1.0.0
+      - 'v*.*.*'
   workflow_dispatch:
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
       id: cache-psmodules-system
       with:
         path: ~\Documents\WindowsPowerShell\Modules
-        key: ${{ runner.os }}-psmodules-system-${{ hashFiles('**/requirements.psd1') }} # Adjust pattern as needed
+        key: ${{ runner.os }}-psmodules-system-${{ hashFiles('**/requirements.psd1') }}
 
     - name: Install ps2exe module (System Update)
       if: steps.cache-psmodules-system.outputs.cache-hit != 'true'
@@ -36,19 +36,19 @@ jobs:
       id: cache-buildtools-system
       with:
         path: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools
-        key: ${{ runner.os }}-buildtools-system-2022 # Consider a more dynamic key if needed
+        key: ${{ runner.os }}-buildtools-system-2022
 
     - name: Set Environment Path (System Update)
       run: |
         $env:PATH += ";C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64"
       shell: pwsh
 
-    - name: Convert PowerShell script to executable (System Update)
+    - name: Convert PowerShell script to executable (Installer)
       run: |
-        pwsh -Command "ps2exe -InputFile installer.ps1 -OutputFile 'SystemUpdate/installer.exe' -version '1.0'"
+        pwsh -Command "ps2exe -InputFile installer.ps1 -OutputFile 'SystemUpdate\installer.exe' -version '1.0'"
       shell: pwsh
 
-    - name: Run mt.exe to embed manifest (Install)
+    - name: Run mt.exe to embed manifest (Installer)
       run: |
         $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
         if (-not (Test-Path $mtPath)) {
@@ -60,10 +60,10 @@ jobs:
         }
         & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\installer.exe";#1
       shell: pwsh
-    
+
     - name: Convert PowerShell script to executable (System Update)
       run: |
-        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate/SystemUpdate/System Update.exe' -version '1.0'"
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate\System Update.exe' -version '1.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (System Update)
@@ -76,44 +76,46 @@ jobs:
             exit 1
           }
         }
-        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\SystemUpdate\System Update.exe";#1
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
+      shell: pwsh
+
+    - name: Prepare ZIP layout
+      run: |
+        New-Item -ItemType Directory -Force -Path ZipStage\SystemUpdate
+        Copy-Item "SystemUpdate\installer.exe" "ZipStage\installer.exe"
+        Copy-Item "SystemUpdate\System Update.exe" "ZipStage\SystemUpdate\System Update.exe"
       shell: pwsh
 
     - name: Create System Update ZIP
       run: |
-        Compress-Archive -Path "SystemUpdate\installer.exe", "SystemUpdate\SystemUpdate" -DestinationPath "SystemUpdate/SystemUpdate.zip"
+        Compress-Archive -Path "ZipStage\*" -DestinationPath "SystemUpdate.zip"
       shell: pwsh
 
-    - name: Upload Artifact (Server CleanUp ZIP)
+    - name: Upload Artifact (System Update ZIP)
       uses: actions/upload-artifact@v4
       with:
         name: SystemUpdateZIP
-        path: SystemUpdate/SystemUpdate.zip      
+        path: SystemUpdate.zip
 
   create_release:
-      name: Create Release
-      runs-on: ubuntu-latest
-      needs: [system_Update_build]
-      if: github.ref_type == 'tag'
-      permissions:
-        contents: write
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [system_Update_build]
+    if: github.ref_type == 'tag'
+    permissions:
+      contents: write
 
-      steps:
-      - name: Download System Update ZIP Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: SystemUpdateZIP
+    steps:
+    - name: Download System Update ZIP Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: SystemUpdateZIP
 
-      - name: Download System Update ZIP Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: SystemUpdateZIP
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          files: |
-            SystemUpdate.zip
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        files: |
+          SystemUpdate.zip
+        draft: false
+        prerelease: ${{ contains(github.ref_name, '-') }}
