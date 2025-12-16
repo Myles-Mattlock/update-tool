@@ -38,7 +38,7 @@ try {
 }
 Copy-Item -Path "SystemUpdate" -Destination "C:\Program Files\SystemUpdate" -Recurse -Force
 #path to .exe file
-$targetPath = "C:\Program Files\SystemUpdate"
+$targetPath = "C:\Program Files\SystemUpdate\System Update.exe"
 
 #name for shortcut
 $shortcutName = "System Update"
