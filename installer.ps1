@@ -10,14 +10,14 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 }
 
 # Script logic below this point will run with elevated privileges
-Write-Output "Running as Administrator! Proceeding with the System Cleanup commands..."
+Write-Output "Running as Administrator! Proceeding with installing System Update..."
 
 # Run the Installer
 try {
 
     # Check/Set TLS 1.2 Protocol (Mandatory for most external connections)
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -Scope CurrentUser
     Install-Module PSWindowsUpdate -Force  -Scope CurrentUser
     Add-WUServiceManager -MicrosoftUpdate  -Confirm:$false
