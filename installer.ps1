@@ -17,17 +17,10 @@ try {
 
     # Check/Set TLS 1.2 Protocol (Mandatory for most external connections)
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -Scope CurrentUser
     Install-Module PSWindowsUpdate -Force  -Scope CurrentUser
-    # Temporarily trust PSGallery
-    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-
-    # Install and configure
-    Add-WUServiceManager -MicrosoftUpdate
-
-    # Revert trust
-    Set-PSRepository -Name PSGallery -InstallationPolicy Untrusted
+    Add-WUServiceManager -MicrosoftUpdate  -Confirm:$false
 
 
     if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
