@@ -10,7 +10,7 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 }
 
 # Script logic below this point will run with elevated privileges
-Write-Output "Running as Administrator! Proceeding with the System Cleanup commands..."
+Write-Output "Running as Administrator! Proceeding with installing System Update..."
 
 # Run the Installer
 try {
@@ -20,7 +20,14 @@ try {
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -Scope CurrentUser
     Install-Module PSWindowsUpdate -Force  -Scope CurrentUser
-    Add-WUServiceManager -MicrosoftUpdate  -Confirm:$false
+    # Temporarily trust PSGallery
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+    # Install and configure
+    Add-WUServiceManager -MicrosoftUpdate
+
+    # Revert trust
+    Set-PSRepository -Name PSGallery -InstallationPolicy Untrusted
 
 
     if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
