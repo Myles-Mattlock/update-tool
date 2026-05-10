@@ -92,7 +92,7 @@ Write-Host "`n--- Checking Dependencies ---" -ForegroundColor Cyan
 
 if (-not (Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
     Write-Host "Installing NuGet provider..." -ForegroundColor Yellow
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
+    Install-PackageProvider -Name NuGet -MinimumVersion 3.0.0.2 -Force | Out-Null
 }
 
 if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
@@ -101,7 +101,7 @@ if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
 }
 
 # --- 6. EXECUTION LOGIC ---
-Write-Host "`n--- System Update & Cleanup ---" -ForegroundColor Cyan
+Write-Host "`n--- Starting System Update ---" -ForegroundColor Cyan
 
 try {
     Write-Host "[1/2] Checking for Windows Updates..." -ForegroundColor Yellow
