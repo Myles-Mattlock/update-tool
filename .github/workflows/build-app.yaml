@@ -12,11 +12,11 @@ on:
 jobs:
   system_Update_build:
     name: Build System Update
-    runs-on: windows-2025
+    runs-on: windows-2025-vs2026
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6.0.2
 
     - name: Cache PowerShell Modules (System Update)
       uses: actions/cache@v4
@@ -45,7 +45,7 @@ jobs:
 
     - name: Convert PowerShell script to executable (Installer)
       run: |
-        pwsh -Command "ps2exe -InputFile installer.ps1 -OutputFile 'SystemUpdate\installer.exe' -version '1.0'"
+        pwsh -Command "ps2exe -InputFile setup.ps1 -OutputFile 'SystemUpdate\setup.exe' -IconFile update-icon.ico -version '2.0.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (Installer)
@@ -58,12 +58,12 @@ jobs:
             exit 1
           }
         }
-        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\installer.exe";#1
+        & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\setup.exe";#1
       shell: pwsh
 
     - name: Convert PowerShell script to executable (System Update)
       run: |
-        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate\System Update.exe' -version '1.0'"
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate\System Update.exe' -IconFile icon.ico -version '2.0.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (System Update)
@@ -82,7 +82,7 @@ jobs:
     - name: Prepare ZIP layout
       run: |
         New-Item -ItemType Directory -Force -Path ZipStage\SystemUpdate
-        Copy-Item "SystemUpdate\installer.exe" "ZipStage\installer.exe"
+        Copy-Item "SystemUpdate\setup.exe" "ZipStage\setup.exe"
         Copy-Item "SystemUpdate\System Update.exe" "ZipStage\SystemUpdate\System Update.exe"
       shell: pwsh
 
@@ -92,7 +92,7 @@ jobs:
       shell: pwsh
 
     - name: Upload Artifact (System Update ZIP)
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7.0.1
       with:
         name: SystemUpdateZIP
         path: SystemUpdate.zip
@@ -107,7 +107,7 @@ jobs:
 
     steps:
     - name: Download System Update ZIP Artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8.0.1
       with:
         name: SystemUpdateZIP
 
