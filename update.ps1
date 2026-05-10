@@ -106,7 +106,7 @@ Write-Host "`n--- Starting System Update ---" -ForegroundColor Cyan
 try {
     Write-Host "[1/2] Checking for Windows Updates..." -ForegroundColor Yellow
     Import-Module PSWindowsUpdate
-    Get-WindowsUpdate -AcceptAll -Install -AutoReboot:$false -ErrorAction Stop
+    Install-WindowsUpdate -ForceDownload -ForceInstall -Confirm:$false -IgnoreReboot -ErrorAction Stop
 
     Write-Host "`n[2/2] Updating Winget packages..." -ForegroundColor Yellow
     winget update --all --accept-source-agreements --accept-package-agreements
