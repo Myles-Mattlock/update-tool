@@ -17,7 +17,6 @@ if (-not $isAdmin -or -not $isWT) {
 # --- 2. GUI & PATH PREPARATION ---
 Add-Type -AssemblyName System.Windows.Forms
 
-# Determine Current Directory
 if ([System.IO.Path]::GetExtension($PSCommandPath) -eq '.exe') {
     $CurrentDir = Split-Path -Parent ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)
 } else {
@@ -72,34 +71,42 @@ function Check-ForUpdates {
     }
 }
 
-# --- 4. DEPENDENCY CHECK ---
-Write-Host "--- Checking Dependencies ---" -ForegroundColor Cyan
-
-# Run Tool Update Check first
+# --- 4. STARTUP & CONFIRMATION ---
+Write-Host "--- Initializing System Update Tool ---" -ForegroundColor Cyan
 Check-ForUpdates
 
-# Ensure NuGet provider is installed
+# New Execution Confirmation Popup
+$PopTitle = "System Update Confirmation"
+$PopText  = "Would you like to begin the System Update process?`n`nThis will check for Windows Updates and update all Winget packages."
+$Result = [System.Windows.Forms.MessageBox]::Show($PopText, $PopTitle, "YesNo", "Question", [System.Windows.Forms.MessageBoxDefaultButton]::Button1, [System.Windows.Forms.MessageBoxOptions]::ServiceNotification)
+
+if ($Result -eq "No") {
+    Write-Host "`nOperation cancelled by user." -ForegroundColor Red
+    Start-Sleep -Seconds 2
+    Exit
+}
+
+# --- 5. DEPENDENCY CHECK ---
+Write-Host "`n--- Checking Dependencies ---" -ForegroundColor Cyan
+
 if (-not (Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
     Write-Host "Installing NuGet provider..." -ForegroundColor Yellow
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
 }
 
-# Ensure the PSWindowsUpdate module is installed/loaded
 if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
     Write-Warning "PSWindowsUpdate module not found. Attempting to install..."
     Install-Module -Name PSWindowsUpdate -Force -SkipPublisherCheck -Scope CurrentUser
 }
 
-# --- 5. EXECUTION LOGIC ---
+# --- 6. EXECUTION LOGIC ---
 Write-Host "`n--- System Update & Cleanup ---" -ForegroundColor Cyan
 
 try {
-    # Windows Updates
     Write-Host "[1/2] Checking for Windows Updates..." -ForegroundColor Yellow
     Import-Module PSWindowsUpdate
     Get-WindowsUpdate -AcceptAll -Install -AutoReboot:$false -ErrorAction Stop
 
-    # Winget Updates
     Write-Host "`n[2/2] Updating Winget packages..." -ForegroundColor Yellow
     winget update --all --accept-source-agreements --accept-package-agreements
 
@@ -109,7 +116,7 @@ catch {
     Write-Host "`nAn update error occurred: $($_.Exception.Message)" -ForegroundColor Red
 }
 
-# --- 6. EXIT HANDLING ---
+# --- 7. EXIT HANDLING ---
 Write-Host "`nExecution finished." -ForegroundColor Cyan
 Write-Host "Press any key to exit..."
 $null = [Console]::ReadKey($true)
