@@ -1,3 +1,17 @@
+# --- 0. FORCE WINDOWS TERMINAL LAUNCH ---
+if ($null -eq $env:WT_SESSION) {
+    if (Get-Command "wt.exe" -ErrorAction SilentlyContinue) {
+        $currentProcess = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+        if ($currentProcess -like "*powershell.exe*") {
+            Start-Process "wt.exe" -ArgumentList "powershell.exe -NoExit -File `"$PSCommandPath`""
+        } else {
+            Start-Process "wt.exe" -ArgumentList "`"$currentProcess`""
+        }
+        exit
+    }
+}
+# -----------------------------------------
+
 # Check if the script is running as Administrator
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Output "This program requires administrative privileges. Please run it as Administrator."
