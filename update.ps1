@@ -41,7 +41,7 @@ try {
 catch {
     Write-Error "An update error occurred: $($_.Exception.Message)"
 }
-finally {
-    Write-Host "Closing in 5 seconds..."
-    Start-Sleep -Seconds 5
-}
+
+Write-Host "Press any key to exit..."
+$null = [Console]::ReadKey($true)
+Exit
