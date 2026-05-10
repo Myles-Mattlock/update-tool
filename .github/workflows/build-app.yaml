@@ -10,26 +10,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  system_Update_build:
-    name: Build System Update
+  build_all:
+    name: Build System and Server Versions
     runs-on: windows-2025-vs2026
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v6.0.2
 
-    - name: Install ps2exe module
-      run: |
-        Install-Module -Name ps2exe -Force -Scope CurrentUser
+    - name: Install ps2exe
+      run: pwsh -Command "Install-Module -Name ps2exe -Force"
       shell: pwsh
 
-    - name: Set Environment Path (Visual Studio Tools)
-      run: |
-        # Locate the MSVC build tools dynamically
-        $vsPath = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\2026\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64" | Select-Object -ExpandProperty FullName -First 1
-        if ($vsPath) {
-            echo "$vsPath" >> $env:GITHUB_PATH
-        }
+    - name: Install Build Tools (mt.exe)
+      run: choco install visualstudio2026buildtools -y --package-parameters "--add Microsoft.Component.MSBuild --add Microsoft.Component.VC"
       shell: pwsh
 
     - name: Convert PowerShell script to executable (Installer)
