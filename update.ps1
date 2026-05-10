@@ -26,7 +26,7 @@ if ([string]::IsNullOrEmpty($CurrentDir)) { $CurrentDir = Get-Location }
 
 # --- 3. CONFIGURATION & UPDATE LOGIC ---
 $CurrentVersion = "2.0.0" 
-$RepoName = "Myles-Mattlock/CleanUp-Tool"
+$RepoName = "Myles-Mattlock/update-tool"
 
 function Check-ForUpdates {
     Write-Host "Checking for tool updates..." -ForegroundColor Gray
