@@ -18,64 +18,41 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v6.0.2
 
-    - name: Cache PowerShell Modules (System Update)
-      uses: actions/cache@v4
-      id: cache-psmodules-system
-      with:
-        path: ~\Documents\WindowsPowerShell\Modules
-        key: ${{ runner.os }}-psmodules-system-${{ hashFiles('**/requirements.psd1') }}
-
-    - name: Install ps2exe module (System Update)
-      if: steps.cache-psmodules-system.outputs.cache-hit != 'true'
+    - name: Install ps2exe module
       run: |
-        pwsh -Command "Install-Module -Name ps2exe -Force"
+        Install-Module -Name ps2exe -Force -Scope CurrentUser
       shell: pwsh
 
-    - name: Cache Build Tools (System Update)
-      uses: actions/cache@v4
-      id: cache-buildtools-system
-      with:
-        path: C:\Program Files (x86)\Microsoft Visual Studio\2026\BuildTools
-        key: ${{ runner.os }}-buildtools-system-2026
-
-    - name: Set Environment Path (System Update)
+    - name: Set Environment Path (Visual Studio Tools)
       run: |
-        $env:PATH += ";C:\Program Files (x86)\Microsoft Visual Studio\2026\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64"
+        # Locate the MSVC build tools dynamically
+        $vsPath = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\2026\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64" | Select-Object -ExpandProperty FullName -First 1
+        if ($vsPath) {
+            echo "$vsPath" >> $env:GITHUB_PATH
+        }
       shell: pwsh
 
     - name: Convert PowerShell script to executable (Installer)
       run: |
-        pwsh -Command "ps2exe -InputFile setup.ps1 -OutputFile 'SystemUpdate\setup.exe' -IconFile update-icon.ico -version '2.0.0'"
+        ps2exe -InputFile setup.ps1 -OutputFile 'SystemUpdate\setup.exe' -IconFile update-icon.ico -version '2.0.0'
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (Installer)
       run: |
-        $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
-        if (-not (Test-Path $mtPath)) {
-          $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\*\bin\*\x64\mt.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 | Select-Object -ExpandProperty FullName
-          if (-not $mtPath) {
-            Write-Error "mt.exe not found."
-            exit 1
-          }
-        }
+        # Find mt.exe dynamically in the Windows Kits folder
+        $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\*\bin\*\x64\mt.exe" | Select-Object -ExpandProperty FullName -First 1
+        if (-not $mtPath) { throw "mt.exe not found" }
         & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\setup.exe";#1
       shell: pwsh
 
     - name: Convert PowerShell script to executable (System Update)
       run: |
-        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate\System Update.exe' -IconFile update-icon.ico -version '2.0.0'"
+        ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate\System Update.exe' -IconFile update-icon.ico -version '2.0.0'
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (System Update)
       run: |
-        $mtPath = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\mt.exe"
-        if (-not (Test-Path $mtPath)) {
-          $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\*\bin\*\x64\mt.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 | Select-Object -ExpandProperty FullName
-          if (-not $mtPath) {
-            Write-Error "mt.exe not found."
-            exit 1
-          }
-        }
+        $mtPath = Get-ChildItem "C:\Program Files (x86)\Windows Kits\*\bin\*\x64\mt.exe" | Select-Object -ExpandProperty FullName -First 1
         & $mtPath -manifest elevate.manifest.xml -outputresource:"SystemUpdate\System Update.exe";#1
       shell: pwsh
 
@@ -112,10 +89,9 @@ jobs:
         name: SystemUpdateZIP
 
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref_name }}
-        files: |
-          SystemUpdate.zip
+        files: SystemUpdate.zip
         draft: false
         prerelease: ${{ contains(github.ref_name, '-') }}
