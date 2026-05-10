@@ -100,7 +100,7 @@ if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
 }
 
 # --- 6. EXECUTION LOGIC ---
-Write-Host "`n--- System Update & Cleanup ---" -ForegroundColor Cyan
+Write-Host "`n--- Starting System Update ---" -ForegroundColor Cyan
 
 try {
     Write-Host "[1/2] Checking for Windows Updates..." -ForegroundColor Yellow
