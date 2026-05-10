@@ -74,7 +74,7 @@ try {
 
     if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
         Write-Host "Installing PSWindowsUpdate module..." -ForegroundColor Gray
-        Install-PackageProvider -Name NuGet -MinimumVersion 3.0.0.2 -Force -Scope CurrentUser
+        Install-PackageProvider -Name NuGet -MinimumVersion 3.0.0.1 -Force -Scope CurrentUser
         Install-Module PSWindowsUpdate -Force -Scope CurrentUser
     }
     
