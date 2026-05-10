@@ -35,12 +35,12 @@ jobs:
       uses: actions/cache@v4
       id: cache-buildtools-system
       with:
-        path: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools
-        key: ${{ runner.os }}-buildtools-system-2022
+        path: C:\Program Files (x86)\Microsoft Visual Studio\2026\BuildTools
+        key: ${{ runner.os }}-buildtools-system-2026
 
     - name: Set Environment Path (System Update)
       run: |
-        $env:PATH += ";C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64"
+        $env:PATH += ";C:\Program Files (x86)\Microsoft Visual Studio\2026\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64"
       shell: pwsh
 
     - name: Convert PowerShell script to executable (Installer)
@@ -63,7 +63,7 @@ jobs:
 
     - name: Convert PowerShell script to executable (System Update)
       run: |
-        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate\System Update.exe' -IconFile icon.ico -version '2.0.0'"
+        pwsh -Command "ps2exe -InputFile update.ps1 -OutputFile 'SystemUpdate\System Update.exe' -IconFile update-icon.ico -version '2.0.0'"
       shell: pwsh
 
     - name: Run mt.exe to embed manifest (System Update)
