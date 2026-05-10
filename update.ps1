@@ -26,6 +26,7 @@ if ([string]::IsNullOrEmpty($CurrentDir)) { $CurrentDir = Get-Location }
 
 # --- 3. CONFIGURATION & UPDATE LOGIC ---
 $CurrentVersion = "2.0.0" 
+# Updated to point to the Update Tool repository
 $RepoName = "Myles-Mattlock/update-tool"
 
 function Check-ForUpdates {
@@ -75,7 +76,7 @@ function Check-ForUpdates {
 Write-Host "--- Initializing System Update Tool ---" -ForegroundColor Cyan
 Check-ForUpdates
 
-# New Execution Confirmation Popup
+# Execution Confirmation Popup
 $PopTitle = "System Update Confirmation"
 $PopText  = "Would you like to begin the System Update process?`n`nThis will check for Windows Updates and update all Winget packages."
 $Result = [System.Windows.Forms.MessageBox]::Show($PopText, $PopTitle, "YesNo", "Question", [System.Windows.Forms.MessageBoxDefaultButton]::Button1, [System.Windows.Forms.MessageBoxOptions]::ServiceNotification)
@@ -100,7 +101,7 @@ if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
 }
 
 # --- 6. EXECUTION LOGIC ---
-Write-Host "`n--- Starting System Update ---" -ForegroundColor Cyan
+Write-Host "`n--- System Update & Cleanup ---" -ForegroundColor Cyan
 
 try {
     Write-Host "[1/2] Checking for Windows Updates..." -ForegroundColor Yellow
